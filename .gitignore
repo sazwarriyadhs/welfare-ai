@@ -1,0 +1,47 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Dependencies
+node_modules/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+
+# Builds
+.next/
+build/
+dist/
+coverage/
+*.exe
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Local data
+data/raw/*
+data/processed/*
+data/external/*
+data/annotations/*
+data/training/*
+data/validation/*
+data/sample/*
+!data/**/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Local AI development metadata
+.refact/

@@ -45,3 +45,30 @@ logs/
 
 # Local AI development metadata
 .refact/
+
+# === Backup & temp files ===
+*.bak
+*.bak-*
+*.backup
+*.backup-*
+*.orig
+*.rej
+*~
+
+# === Quarantine & scaffold temp ===
+.next-quarantine-*/
+.permission-test-*/
+_web-scaffold-temp/
+
+# === Local backups dir ===
+backups/
+
+# === PX4 inspect dumps ===
+px4-sitl-inspect-*.json
+
+# === TS build cache ===
+*.tsbuildinfo
+
+# === OS ===
+.DS_Store
+Thumbs.db

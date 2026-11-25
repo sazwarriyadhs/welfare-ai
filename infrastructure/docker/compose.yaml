@@ -1,0 +1,69 @@
+name: welfare-ai
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: welfare-ai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    ports:
+      - "127.0.0.1:15460:5432"
+    volumes:
+      - welfare-ai-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - welfare-ai-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: welfare-ai-redis
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$${REDIS_PASSWORD}\""]
+    ports:
+      - "127.0.0.1:6395:6379"
+    volumes:
+      - welfare-ai-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - welfare-ai-network
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: welfare-ai-mqtt
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1887:1883"
+    volumes:
+      - ../mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - welfare-ai-mqtt-data:/mosquitto/data
+      - welfare-ai-mqtt-logs:/mosquitto/log
+    networks:
+      - welfare-ai-network
+
+volumes:
+  welfare-ai-postgres-data:
+    name: welfare-ai-postgres-data
+  welfare-ai-redis-data:
+    name: welfare-ai-redis-data
+  welfare-ai-mqtt-data:
+    name: welfare-ai-mqtt-data
+  welfare-ai-mqtt-logs:
+    name: welfare-ai-mqtt-logs
+
+networks:
+  welfare-ai-network:
+    name: welfare-ai-network
+    driver: bridge

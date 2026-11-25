@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 
 
 const execFileAsync = promisify(execFile);
-const CONTAINER = "welfare-ai-px4-gazebo";
+const CONTAINER = "px4-official";
 
 async function docker(args: string[]) {
   return execFileAsync("docker", args, {

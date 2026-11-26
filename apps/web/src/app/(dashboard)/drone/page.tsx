@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useI18n } from "@/i18n/I18nProvider";
 import dynamic from "next/dynamic";
 import {
   Plane, Radio, MapPinned, Play, Pause, RotateCcw,
@@ -163,6 +164,7 @@ function controlStyle(): React.CSSProperties {
 }
 
 export default function DroneDashboardPage() {
+  const { t } = useI18n();
   const [drone, setDrone] = useState<DroneStatus | null>(null);
   const [socketState, setSocketState] = useState("connecting");
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
@@ -172,15 +174,15 @@ export default function DroneDashboardPage() {
   async function runSimulationAction(action: "start" | "reset") {
     if (action === "reset") {
       const confirmed = window.confirm(
-        "Restart Gazebo simulation from scratch? The current simulation state will be lost."
+        t("droneResetConfirm")
       );
       if (!confirmed) return;
     }
 
     setControlBusy(true);
     setControlMessage(action === "reset"
-      ? "Restarting Gazebo simulation..."
-      : "Starting Gazebo simulation...");
+      ? t("droneRestarting")
+      : t("droneStarting"));
 
     try {
       const response = await fetch("/api/drone/simulation", {
@@ -192,13 +194,13 @@ export default function DroneDashboardPage() {
       const result = await response.json();
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Simulation command failed");
+        throw new Error(result.error || t("droneCommandFailed"));
       }
 
       setControlMessage(result.message);
     } catch (error) {
       setControlMessage(
-        error instanceof Error ? error.message : "Simulation command failed"
+        error instanceof Error ? error.message : t("droneCommandFailed")
       );
     } finally {
       setControlBusy(false);
@@ -266,6 +268,13 @@ export default function DroneDashboardPage() {
     };
   }, []);
 
+  const socketStateLabel =
+    socketState === "connecting" ? t("droneSocketConnecting") :
+    socketState === "waiting" ? t("droneSocketWaiting") :
+    socketState === "error" ? t("droneSocketError") :
+    socketState === "disconnected" ? t("droneSocketDisconnected") :
+    t("droneSocketConnecting");
+
   const connected = drone?.connected === true;
   const position = drone?.position;
   const motion = drone?.motion;
@@ -274,26 +283,26 @@ export default function DroneDashboardPage() {
   const flight = drone?.flight;
 
   const connectionLabel = connected
-    ? "LIVE TELEMETRY CONNECTED"
+    ? t("droneLiveConnected")
     : socketState === "connecting"
-      ? "CONNECTING TO BRIDGE"
-      : "TELEMETRY DISCONNECTED";
+      ? t("droneConnectingBridge")
+      : t("droneDisconnected");
 
   const fixLabel = gps?.fix_type == null
-    ? "No GPS data"
+    ? t("droneNoGpsData")
     : gps.fix_type >= 3
-      ? "3D GPS Fix"
+      ? t("droneGps3d")
       : gps.fix_type === 2
-        ? "2D GPS Fix"
-        : "GPS signal unavailable";
+        ? t("droneGps2d")
+        : t("droneGpsUnavailable");
 
   return (
     <main className="content">
       <div className="page-heading">
         <div>
-          <div className="eyebrow">AERIAL INTELLIGENCE / SIMULATION LAB</div>
-          <h1>Drone Flight Command</h1>
-          <p>PX4 SITL simulation, live telemetry and aerial intelligence.</p>
+          <div className="eyebrow">{t("droneEyebrow")}</div>
+          <h1>{t("droneTitle")}</h1>
+          <p>{t("droneSubtitle")}</p>
         </div>
 
         <div style={{
@@ -338,10 +347,10 @@ export default function DroneDashboardPage() {
           }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 750 }}>
-                Flight Simulation Workspace
+                {t("droneSimulationWorkspace")}
               </div>
               <div style={{ fontSize: 10, color: "#718078", marginTop: 5 }}>
-                PX4 Gazebo SITL · Live vehicle telemetry
+                {t("droneSimulationSubtitle")}
               </div>
             </div>
 
@@ -353,7 +362,7 @@ export default function DroneDashboardPage() {
               padding: "6px 10px",
               fontWeight: 700
             }}>
-              {connected ? "TELEMETRY LIVE" : "WAITING FOR TELEMETRY"}
+              {connected ? t("droneTelemetryLive") : t("droneWaitingTelemetry")}
             </span>
           </div>
 
@@ -400,7 +409,7 @@ export default function DroneDashboardPage() {
               boxShadow: "0 2px 8px #0001"
             }}>
               <div style={{ fontWeight: 750, marginBottom: 7 }}>
-                LIVE GPS POSITION
+                {t("droneLiveGpsPosition")}
               </div>
               <div>LAT: {coordinate(position?.latitude)}</div>
               <div style={{ marginTop: 4 }}>
@@ -411,7 +420,7 @@ export default function DroneDashboardPage() {
                 marginTop: 7,
                 fontWeight: 700
               }}>
-                {connected ? fixLabel : "Waiting for GPS"}
+                {connected ? fixLabel : t("droneWaitingGps")}
               </div>
             </div>
           </div>
@@ -427,10 +436,10 @@ export default function DroneDashboardPage() {
               disabled={controlBusy}
               onClick={() => runSimulationAction("start")}
               style={{ ...controlStyle(), opacity: controlBusy ? 0.6 : 1 }}
-              title="Start the existing Gazebo SITL container">
-              <Play size={14} /> {controlBusy ? "Please wait..." : "Start Simulation"}
+              title={t("droneStartTitle")}>
+              <Play size={14} /> {controlBusy ? t("dronePleaseWait") : t("droneStartSimulation")}
             </button>
-            <button disabled title="PX4 hold command is not implemented"
+            <button disabled title={t("droneHoldTitle")}
               style={{ ...controlStyle(), background: "#e8ece9", color: "#87938b", cursor: "not-allowed" }}>
               <Pause size={14} /> Hold
             </button>
@@ -438,10 +447,10 @@ export default function DroneDashboardPage() {
               disabled={controlBusy}
               onClick={() => runSimulationAction("reset")}
               style={{ ...controlStyle(), background: "#a65b35", opacity: controlBusy ? 0.6 : 1 }}
-              title="Restart the existing Gazebo container">
+              title={t("droneResetTitle")}>
               <RotateCcw size={14} /> Reset
             </button>
-            <button disabled title="MAVLink Mission Protocol is not implemented"
+            <button disabled title={t("droneUploadTitle")}
               style={{ ...controlStyle(), background: "#e8ece9", color: "#87938b", cursor: "not-allowed" }}>
               <Route size={14} /> Upload Mission
             </button>
@@ -478,9 +487,9 @@ export default function DroneDashboardPage() {
 
         <div style={{ display: "grid", gap: 15 }}>
           <section className="panel">
-            <h2 className="panel-title">Vehicle Connection</h2>
+            <h2 className="panel-title">{t("droneVehicleConnection")}</h2>
             <p className="panel-subtitle">
-              Simulator and autopilot status
+              {t("droneSimulatorStatus")}
             </p>
 
             <div style={{
@@ -504,30 +513,30 @@ export default function DroneDashboardPage() {
                   color: connected ? "#24764e" : "#8a713f",
                   marginTop: 4
                 }}>
-                  {connected ? "MAVLink telemetry active" : socketState}
+                  {connected ? t("droneMavlinkActive") : socketStateLabel}
                 </div>
               </div>
             </div>
 
             <div style={{ fontSize: 11, color: "#718078", marginTop: 14 }}>
-              Transport: MAVLink → Go Bridge → WebSocket
+              {t("droneTransport")}: MAVLink → Go Bridge → WebSocket
             </div>
             <div style={{ fontSize: 11, color: "#718078", marginTop: 7 }}>
               UDP: {drone?.udp_listen ?? "0.0.0.0:14610"}
             </div>
             <div style={{ fontSize: 11, color: "#718078", marginTop: 7 }}>
-              Frames received: {drone?.frames_received?.toLocaleString() ?? "--"}
+              {t("droneFramesReceived")}: {drone?.frames_received?.toLocaleString() ?? "--"}
             </div>
             <div style={{ fontSize: 11, color: "#718078", marginTop: 7 }}>
-              Last update: {lastUpdate
+              {t("droneLastUpdate")}: {lastUpdate
                 ? new Date(lastUpdate).toLocaleTimeString()
                 : "--"}
             </div>
           </section>
 
           <section className="panel">
-            <h2 className="panel-title">Flight Status</h2>
-            <p className="panel-subtitle">Autopilot state</p>
+            <h2 className="panel-title">{t("droneFlightStatus")}</h2>
+            <p className="panel-subtitle">{t("droneAutopilotState")}</p>
 
             <div style={{
               display: "grid",
@@ -535,14 +544,14 @@ export default function DroneDashboardPage() {
               gap: 10
             }}>
               <Metric
-                label="Flight Mode"
+                label={t("droneFlightMode")}
                 value={flight?.flight_mode ?? "--"}
                 unit=""
                 icon={Plane}
               />
               <Metric
-                label="Arming"
-                value={flight?.armed == null ? "--" : flight.armed ? "ARMED" : "SAFE"}
+                label={t("droneArming")}
+                value={flight?.armed == null ? "--" : flight.armed ? t("droneArmed") : t("droneSafe")}
                 unit=""
                 icon={ShieldCheck}
               />
@@ -550,9 +559,9 @@ export default function DroneDashboardPage() {
           </section>
 
           <section className="panel">
-            <h2 className="panel-title">Live Telemetry</h2>
+            <h2 className="panel-title">{t("droneLiveTelemetry")}</h2>
             <p className="panel-subtitle">
-              Values received from PX4 MAVLink
+              {t("droneTelemetrySubtitle")}
             </p>
 
             <div style={{
@@ -561,38 +570,38 @@ export default function DroneDashboardPage() {
               gap: 10
             }}>
               <Metric
-                label="Altitude"
+                label={t("droneAltitude")}
                 value={numberValue(position?.altitude_m)}
                 unit="m"
                 icon={Navigation}
               />
               <Metric
-                label="Relative Altitude"
+                label={t("droneRelativeAltitude")}
                 value={numberValue(position?.relative_altitude_m)}
                 unit="m"
                 icon={Activity}
               />
               <Metric
-                label="Ground Speed"
+                label={t("droneGroundSpeed")}
                 value={numberValue(motion?.ground_speed_mps)}
                 unit="m/s"
                 icon={Gauge}
               />
               <Metric
-                label="Heading"
+                label={t("droneHeading")}
                 value={numberValue(motion?.heading_deg, 1)}
                 unit="°"
                 icon={Compass}
               />
               <Metric
-                label="GPS Satellites"
+                label={t("droneGpsSatellites")}
                 value={gps?.satellites_visible?.toString() ?? "--"}
                 unit="SV"
                 icon={Satellite}
               />
               <Metric
-                label="Battery"
-                value="N/A"
+                label={t("droneBattery")}
+                value={t("droneNotAvailable")}
                 unit=""
                 icon={Battery}
               />
@@ -600,8 +609,8 @@ export default function DroneDashboardPage() {
           </section>
 
           <section className="panel">
-            <h2 className="panel-title">Attitude</h2>
-            <p className="panel-subtitle">Aircraft orientation</p>
+            <h2 className="panel-title">{t("droneAttitude")}</h2>
+            <p className="panel-subtitle">{t("droneAircraftOrientation")}</p>
 
             {[
               ["Roll", attitude?.roll_deg],
@@ -624,21 +633,21 @@ export default function DroneDashboardPage() {
           </section>
 
           <section className="panel">
-            <h2 className="panel-title">Simulation Sensors</h2>
+            <h2 className="panel-title">{t("droneSimulationSensors")}</h2>
             <p className="panel-subtitle">
-              Current integration status
+              {t("droneIntegrationStatus")}
             </p>
 
             {[
-              { name: "MAVLink Telemetry", icon: Radio, state: connected ? "Live" : "Offline", live: connected },
-              { name: "GPS / Position", icon: Crosshair, state: gps?.fix_type != null ? "Live" : "Waiting", live: gps?.fix_type != null },
-              { name: "RGB Camera", icon: Camera, state: "Planned", live: false },
-              { name: "Thermal Sensor", icon: Thermometer, state: "Planned", live: false },
-              { name: "Safety Monitoring", icon: ShieldCheck, state: "Planned", live: false }
+              { name: "MAVLink Telemetry", label: t("droneSensorMavlink"), icon: Radio, state: connected ? t("droneStateLive") : t("droneStateOffline"), live: connected },
+              { name: "GPS / Position", label: t("droneSensorGps"), icon: Crosshair, state: gps?.fix_type != null ? t("droneStateLive") : t("droneStateWaiting"), live: gps?.fix_type != null },
+              { name: "RGB Camera", label: t("droneSensorCamera"), icon: Camera, state: t("droneStatePlanned"), live: false },
+              { name: "Thermal Sensor", label: t("droneSensorThermal"), icon: Thermometer, state: t("droneStatePlanned"), live: false },
+              { name: "Safety Monitoring", label: t("droneSensorSafety"), icon: ShieldCheck, state: t("droneStatePlanned"), live: false }
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <div key={item.name} style={{
+                <div key={item.label} style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 9,
@@ -647,7 +656,7 @@ export default function DroneDashboardPage() {
                   fontSize: 11
                 }}>
                   <Icon size={15} color={item.live ? "#24764e" : "#87938b"} />
-                  {item.name}
+                  {item.label}
                   <span style={{
                     marginLeft: "auto",
                     color: item.live ? "#24764e" : "#9a8a6b",
@@ -671,12 +680,8 @@ export default function DroneDashboardPage() {
         fontSize: 11,
         lineHeight: 1.7
       }}>
-        <strong>Simulation safety:</strong> Simulation lifecycle controls manage the local Gazebo container. PX4 flight
-        commands, mission upload and arming remain disabled until MAVLink command
-        authorization, validation and failsafe protections are implemented. The map is a schematic workspace,
-        not a geospatial map.
+        <strong>{t("droneSafetyTitle")}:</strong> {t("droneSafetyNotice")}
       </div>
     </main>
   );
 }
-

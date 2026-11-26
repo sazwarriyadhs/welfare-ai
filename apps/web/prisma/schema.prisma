@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Animal {
+  id          String    @id @default(cuid())
+  tagNumber   String    @unique
+  species     String
+  breed       String?
+  sex         String
+  birthDate   DateTime?
+  healthScore Int       @default(100)
+  status      String    @default("active")
+  location    String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  healthHistory AnimalHealthHistory[]
+
+  @@index([status])
+  @@index([species])
+}
+
+model AnimalHealthHistory {
+  id          String   @id @default(cuid())
+  animalId    String
+  healthScore Int
+  source      String   @default("manual")
+  recordedAt  DateTime @default(now())
+
+  animal Animal @relation(fields: [animalId], references: [id], onDelete: Cascade)
+
+  @@index([animalId, recordedAt])
+  @@index([recordedAt])
+}

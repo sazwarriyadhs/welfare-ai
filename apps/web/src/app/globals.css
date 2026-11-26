@@ -243,3 +243,124 @@ a { text-decoration: none; color: inherit; }
   .drone-map-canvas { height: 320px; }
   .drone-map-footer { gap: 9px 14px; }
 }
+/* WELFARE AI multilingual and Arabic RTL support */
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.language-switcher select {
+  max-width: 155px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--foreground);
+  padding: 7px 9px;
+  font: inherit;
+}
+
+.mobile-workspace { display: none; }
+
+html[dir="rtl"] body {
+  direction: rtl;
+}
+
+html[dir="rtl"] .dashboard-shell {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .sidebar,
+html[dir="rtl"] .main-area {
+  text-align: right;
+}
+
+html[dir="rtl"] .nav-link {
+  flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .topbar,
+html[dir="rtl"] .topbar-right {
+  direction: rtl;
+}
+
+html[dir="rtl"] .content {
+  direction: rtl;
+}
+
+html[dir="rtl"] .content table {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] .content input,
+html[dir="rtl"] .content select,
+html[dir="rtl"] .content textarea {
+  text-align: right;
+}
+
+html[dir="rtl"] .language-switcher {
+  flex-direction: row;
+}
+
+@media(max-width:700px) {
+  .desktop-workspace { display: none; }
+  .mobile-workspace { display: inline; }
+  .language-switcher > span { display: none; }
+  .language-switcher select { max-width: 125px; }
+}
+
+/* Drone geospatial layer controls */
+.drone-map-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.drone-map-layer {
+  border: 1px solid #dce8df;
+  border-radius: 7px;
+  padding: 8px 11px;
+  color: #33483b;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.drone-map-layer:hover {
+  background: #f0f6f1;
+  border-color: #24764e;
+}
+
+.drone-map-follow:focus-visible,
+.drone-map-layer:focus-visible {
+  outline: 2px solid #24764e;
+  outline-offset: 2px;
+}
+
+.drone-leaflet-map .leaflet-tile {
+  filter: none;
+}
+
+@media (max-width: 560px) {
+  .drone-map-toolbar {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .drone-map-actions {
+    gap: 5px;
+  }
+
+  .drone-map-layer,
+  .drone-map-follow {
+    padding: 7px 8px;
+    font-size: 9px;
+  }
+}

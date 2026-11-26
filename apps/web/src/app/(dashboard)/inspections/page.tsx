@@ -1,14 +1,27 @@
-export default function Page() {
+"use client";
+
+import { useI18n } from "@/i18n/I18nProvider";
+
+export default function InspectionsPage() {
+  const { t } = useI18n();
+
   return (
     <main className="content">
-      <div className="eyebrow">WELFARE AI MODULE</div>
-      <h1 style={{fontSize:25,fontWeight:750}}>Welfare Inspections</h1>
-      <p style={{color:"#718078",fontSize:13,marginTop:10}}>Inspection planning, field observations and evidence.</p>
-      <section className="panel" style={{marginTop:25}}>
-        <h2 className="panel-title">Module foundation</h2>
+      <div className="eyebrow">{t("moduleEyebrow")}</div>
+
+      <h1 style={{ fontSize: 25, fontWeight: 750 }}>
+        {t("inspectionsTitle")}
+      </h1>
+
+      <p style={{ color: "#718078", fontSize: 13, marginTop: 10 }}>
+        {t("inspectionsSubtitle")}
+      </p>
+
+      <section className="panel" style={{ marginTop: 25 }}>
+        <h2 className="panel-title">{t("moduleFoundation")}</h2>
+
         <p className="panel-subtitle">
-          This module is scaffolded. API integration and operational workflows
-          will be implemented in subsequent development phases.
+          {t("inspectionsScaffoldNotice")}
         </p>
       </section>
     </main>

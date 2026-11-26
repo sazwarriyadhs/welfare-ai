@@ -76,14 +76,27 @@ var state = &State{
 	},
 }
 
+// allowedOrigins adalah whitelist origin yang diizinkan mengakses API
+// (HTTP status & WebSocket). Tambahkan port dev frontend di sini.
+var allowedOrigins = map[string]bool{
+	"http://localhost:3000": true,
+	"http://127.0.0.1:3000": true,
+	"http://localhost:3002": true,
+	"http://127.0.0.1:3002": true,
+	"http://localhost:3017": true,
+	"http://127.0.0.1:3017": true,
+	"http://localhost:3010": true,
+	"http://127.0.0.1:3010": true,
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
-
-		return origin == "http://localhost:3002" ||
-			origin == "http://127.0.0.1:3002" ||
-			origin == "http://localhost:3017" ||
-			origin == "http://127.0.0.1:3017"
+		if origin == "" {
+			// Klien non-browser (wscat, curl) tidak mengirim Origin.
+			return true
+		}
+		return allowedOrigins[origin]
 	},
 }
 
@@ -238,8 +251,12 @@ func (s *State) snapshot() DroneStatus {
 func allowDashboardOrigin(w http.ResponseWriter, r *http.Request) bool {
 	origin := r.Header.Get("Origin")
 
-	if origin == "http://localhost:3017" ||
-		origin == "http://127.0.0.1:3017" {
+	if origin == "" {
+		// Klien non-browser (curl, health check server-to-server).
+		return true
+	}
+
+	if allowedOrigins[origin] {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Vary", "Origin")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -247,7 +264,7 @@ func allowDashboardOrigin(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 
-	return origin == ""
+	return false
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
@@ -307,12 +324,13 @@ func mavlinkListenAddress() string {
 	}
 	return listen
 }
+
 func startMAVLinkListener() {
 	listen := mavlinkListenAddress()
 
 	node := &gomavlib.Node{
-
-		Dialect: ardupilotmega.Dialect, Endpoints: []gomavlib.EndpointConf{
+		Dialect: ardupilotmega.Dialect,
+		Endpoints: []gomavlib.EndpointConf{
 			&gomavlib.EndpointUDPServer{Address: listen},
 		},
 		OutVersion:       gomavlib.V2,
@@ -347,6 +365,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/api/v1/animals", animalsHandler)
+	mux.HandleFunc("/api/v1/livestock-breeds", livestockBreedsHandler)
+	mux.HandleFunc("/api/v1/sites", sitesHandler)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"status":"ok","service":"welfare-ai-drone-bridge"}`))

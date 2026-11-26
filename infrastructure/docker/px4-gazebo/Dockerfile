@@ -28,5 +28,8 @@ RUN set -eu; \
     grep -F ' -s GPS_RAW_INT -u 18571' "$f"; \
     grep -F ' -s VFR_HUD -u 18571' "$f"
 
-ENTRYPOINT ["/opt/px4-gazebo/bin/px4-entrypoint.sh"]
+COPY px4-entrypoint.sh /opt/px4-gazebo/bin/welfare-ai-entrypoint.sh
+RUN chmod +x /opt/px4-gazebo/bin/welfare-ai-entrypoint.sh
+
+ENTRYPOINT ["/opt/px4-gazebo/bin/welfare-ai-entrypoint.sh"]
 CMD ["-d", "-w", "/opt/px4-gazebo", "/opt/px4-gazebo"]

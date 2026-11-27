@@ -44,3 +44,10 @@ next-env.d.ts
 .next-quarantine-*/
 .permission-test-*/
 backups/
+
+# local maintenance and recovery artifacts
+.maintenance-backups/
+logs/
+
+# local runtime artifacts
+*.log
